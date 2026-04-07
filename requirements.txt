@@ -1,0 +1,4 @@
+ruff
+bandit
+pytest
+pytest-cov
