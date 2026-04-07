@@ -1,0 +1,46 @@
+name: Secure-CI-Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # GATE 1: STATIC ANALYSIS & SECURITY
+  lint-and-shield:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Tools
+        run: pip install ruff bandit
+        
+      - name: Code Cleanliness (Ruff)
+        run: ruff check .
+        
+      - name: Security Audit (Bandit)
+        run: bandit -r . -ll # Only fail on medium/high severity
+
+  # GATE 2: LOGIC & COVERAGE
+  logic-and-coverage:
+    needs: lint-and-shield  # 🛑 Don't run tests if code is messy/insecure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+          
+      - name: Run Tests with 100% Coverage
+        run: pytest --cov=. --cov-fail-under=100
