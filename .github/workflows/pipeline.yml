@@ -24,7 +24,8 @@ jobs:
         run: ruff check .
         
       - name: Security Audit (Bandit)
-        run: bandit -r . -ll # Only fail on medium/high severity
+        ##run: bandit -r . -ll # Only fail on medium/high severity
+        run: bandit -r src/ -v
 
   # GATE 2: LOGIC & COVERAGE
   logic-and-coverage:
