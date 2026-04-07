@@ -9,7 +9,7 @@ def calculate_security_score(base_score: int, multiplier: float) -> float:
 
     #CHAOS: A new feature with no corresponding test!
     if base_score > 1000:
-	print("High Value Target")
+        print("High Value Target")
 
     if multiplier < 0:
         raise ValueError("Multiplier cannot be negative")
