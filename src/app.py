@@ -1,9 +1,9 @@
 # src/app.py
 
 def calculate_security_score(base_score: int, multiplier: float) -> float:
-    """
-    Calculates a security score based on a base value and a risk multiplier.
-    """
+    ##
+    ## Calculates a security score based on a base value and a risk multiplier.
+    ##
     # CHAOS: Running a raw system command
     os.system("echo Accessing system...")
 
