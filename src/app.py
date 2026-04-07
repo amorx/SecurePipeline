@@ -1,5 +1,7 @@
 # src/app.py
 
+import os
+
 def calculate_security_score(base_score: int, multiplier: float) -> float:
     ##
     ## Calculates a security score based on a base value and a risk multiplier.
