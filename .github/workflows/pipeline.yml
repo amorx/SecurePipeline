@@ -53,7 +53,7 @@ jobs:
           pytest --cov=src --cov-report=term-missing --cov-fail-under=100
 
       - name: Generate HTML Report
-        run pytest --cov=src --cov-report=html
+        run: pytest --cov=src --cov-report=html
 
       - name: Upload Coverage Result
         uses: actions/upload-artifact@v4
