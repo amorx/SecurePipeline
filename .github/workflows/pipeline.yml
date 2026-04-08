@@ -49,7 +49,7 @@ jobs:
         run: |
           # This command lists licenses and fails if it finds "GPL" or "AGPL"
           # You can add other forbidden licenses to this list
-          pip-licenses --fail-on GPL AGPL
+          pip-licenses --fail-on "GPL,AGPL,LGPL"
 
   # GATE 3: LOGIC & COVERAGE
   logic-and-coverage:
