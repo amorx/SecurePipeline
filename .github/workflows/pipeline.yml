@@ -53,7 +53,7 @@ jobs:
 
   # GATE 3: LOGIC & COVERAGE
   logic-and-coverage:
-    needs: legel-licenses-checks  # 🛑 Don't run tests if libraries cannot be used
+    needs: legal-licenses-checks  # 🛑 Don't run tests if libraries cannot be used
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
