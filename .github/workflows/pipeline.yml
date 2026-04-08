@@ -27,9 +27,34 @@ jobs:
         ##run: bandit -r . -ll # Only fail on medium/high severity
         run: bandit -r src/ -v
 
-  # GATE 2: LOGIC & COVERAGE
+  # GATE 2: LEGAL CHECKS
+  legal-licenses-checks:
+    needs: lint-and-shield  # 🛑 Don't run tests if code is messy/insecure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' #saves time per run
+          
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+          
+      - name: License Compliance Check
+        run: |
+          # This command lists licenses and fails if it finds "GPL" or "AGPL"
+          # You can add other forbidden licenses to this list
+          pip-licenses --fail-on GPL AGPL
+
+  # GATE 3: LOGIC & COVERAGE
   logic-and-coverage:
     needs: lint-and-shield  # 🛑 Don't run tests if code is messy/insecure
+    needs: legel-licenses-checks  # 🛑 Don't run tests if libraries cannot be used
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
