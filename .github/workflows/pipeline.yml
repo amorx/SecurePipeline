@@ -45,7 +45,7 @@ jobs:
           pip install pytest pytest-cov
           
       - name: Run Tests with 100% Coverage
-        run: pytest --cov=. --cov-fail-under=100
+        ##run: pytest --cov=. --cov-fail-under=100
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: |
