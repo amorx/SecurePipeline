@@ -2,18 +2,22 @@
 
 import os
 
-def calculate_security_score(base_score: int, multiplier: float) -> float:
-    ##
-    ## Calculates a security score based on a base value and a risk multiplier.
-    ##
-    # CHAOS: Running a raw system command
-    os.system("echo Accessing system...")
+def encrypt_message(message: str) -> str:
+    """
+    Encrypts a message using a key stored in environment variables.
+    """
+    # 1. SECRET GATE: Ensure the key exists
+    key = os.getenv("ENCRYPTION_KEY")
+    if not key:
+        raise ConnectionError("ENCRYPTION_KEY not found in environment")
 
-    #CHAOS: A new feature with no corresponding test!
-    if base_score > 1000:
-        print("High Value Target")
+    # 2. LOGIC GATE: Prevent weak passwords
+    if len(key) < 8:
+        raise ValueError("Encryption key is too weak. Must be at least 8 chars.")
 
-    if multiplier < 0:
-        raise ValueError("Multiplier cannot be negative")
+    # 3. TRANSFORMATION: Simple Caesar-style shift for demo purposes
+    # In a real app, you'd use a library like 'cryptography'
+    shift = len(key) % 26
+    encrypted = "".join(chr((ord(char) + shift)) for char in message)
     
-    return base_score * multiplier
+    return encrypted
