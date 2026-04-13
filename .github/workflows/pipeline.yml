@@ -50,7 +50,10 @@ jobs:
           # This command lists licenses and fails if it finds "GPL" or "AGPL"
           # You can add other forbidden licenses to this list
           ##pip-licenses --fail-on "GPL,AGPL,LGPL" -- negative check
-          pip-licenses --allow-only "MIT,Apache,BSD,Python,ISC,PSF" --partial-match
+          pip-license \
+            --allow-only MIT Apache BSD Python ISC PSF "MIT License" \
+            --partial-match \
+            --order=license
 
   # GATE 3: LOGIC & COVERAGE
   logic-and-coverage:
