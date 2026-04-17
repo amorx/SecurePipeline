@@ -16,16 +16,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install Tools
         run: pip install ruff bandit
-        
+
       - name: Code Cleanliness (Ruff)
         run: ruff check .
-        
+
       - name: Security Audit (Bandit)
         ##run: bandit -r . -ll # Only fail on medium/high severity
         run: bandit -r src/ -v
+
+      - name: Check for vulnerable dependencies
+        run: |
+          pip install safety
+          safety check
 
   # GATE 2: LEGAL CHECKS
   legal-licenses-checks:
@@ -39,17 +44,27 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip' #saves time per run
-          
+
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
           pip install pytest pytest-cov
-          
+
       - name: License Compliance Check
         run: |
           pip-licenses --summary
           #pip-licenses --allow-only "MIT" "MIT License" "Apache Software License" "Apache-2.0" "BSD-2-Clause" "Apache-2.0 OR BSD-2-Clause" "Python" --partial-match
           pip-licenses --allow-only "MIT;Apache;BSD;Python;ISC;PSF" --partial-match
+
+      - name: Generate SBOM
+        run: |
+          pip install cyclonedx-bom
+          cyclonedx-py requirements --format json --output-file bom.json
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-bill-of-materials
+          path: bom.json
 
   # GATE 3: LOGIC & COVERAGE
   logic-and-coverage:
@@ -63,12 +78,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip' #saves time per run
-          
+
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
           pip install pytest pytest-cov
-          
+
       - name: Run Tests with 100% Coverage
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
@@ -84,3 +99,15 @@ jobs:
         with:
           name: python-coverage-report
           path: htmlcov/
+
+  # GATE 4: Keys check
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Scans the entire history, not just the latest commit
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
