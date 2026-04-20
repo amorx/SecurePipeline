@@ -30,7 +30,7 @@ jobs:
       - name: Check for vulnerable dependencies
         run: |
           pip install safety
-          safety check
+          safety scan
 
   # GATE 2: LEGAL CHECKS
   legal-licenses-checks:
@@ -111,3 +111,28 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # GATE 5: DOCKER LINTING
+  docker-lint:
+    name: Docker Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint Dockerfile (Hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          # Fail on style/info so the gate is strict
+          failure-threshold: info
+
+  # GATE 6: INFRASTRUCTURE SCAN
+  infra-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkov GitHub Action
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./infra # Points to your infrastructure folder
+          framework: terraform
+          soft_fail: false # Block the PR if infra is insecure

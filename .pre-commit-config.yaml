@@ -1,0 +1,43 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        # Safety CLI rewrites this file; EOF normalization fights `safety scan` and blocks commits.
+        exclude: ^\.safety-project\.ini$
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+
+  - repo: local
+    hooks:
+      - id: bandit
+        name: bandit
+        entry: bandit
+        language: system
+        types: [python]
+        files: ^src/
+        args: ["-v" , "-ll"]
+
+      - id: pip-audit
+        name: pip-audit
+        entry: pip-audit
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      # safety scan rewrites .safety-project.ini; pre-commit treats that as a failed commit.
+      # Run Safety in CI instead: .github/workflows/pipeline.yml and safety_scan.yml
+
+      - id: pytest-cov
+        name: pytest-cov
+        entry: bash -c "export PYTHONPATH=$PYTHONPATH:$(pwd) && pytest --cov=src --cov-fail-under=100"
+        language: system
+        pass_filenames: false
+        always_run: true

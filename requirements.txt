@@ -1,5 +1,6 @@
+-i https://pkgs.safetycli.com/repository/morkos-it/project/securepipeline/pypi/simple/
 ruff
-bandit
-pytest
-pytest-cov
+bandit>=1.9.4
+pytest>=9.0.3
+pytest-cov>=7.1.0
 pip-licenses

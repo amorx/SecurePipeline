@@ -8,14 +8,14 @@ from src.app import SecureVault
 def test_vault_stores_encrypted_file():
     # We use a dummy directory name
     vault = SecureVault(vault_dir="test_vault")
-    
+
     # Mock the 'open' function so no real file is created
     m = mock_open()
     with patch("builtins.open", m):
         # We also mock os.makedirs to avoid creating real folders
         with patch("os.makedirs"):
             vault.store_message("secret.txt", "Hello World")
-    
+
     # Assertions to ensure the logic flowed correctly
     m.assert_called_once_with(os.path.join("test_vault", "secret.txt"), "w")
     handle = m()
