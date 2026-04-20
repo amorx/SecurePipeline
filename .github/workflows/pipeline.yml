@@ -195,7 +195,7 @@ jobs:
       - name: Prepare ZAP workspace
         run: |
           touch zap.yaml
-          touch report_json.json report_md.md report_html.html
+          touch report-json.json report-md.md report-html.html
           chmod -R 777 . # Grant full access to the workspace for the ZAP user
 
       - name: OWASP ZAP Baseline Scan
@@ -204,3 +204,13 @@ jobs:
           target: 'http://localhost:8080'
           # This generates a report and creates a GitHub Issue if it finds flaws
           fail_action: true
+
+      - name: Upload ZAP Security Report
+        uses: actions/upload-artifact@v4
+        if: always() # Ensure this runs even if ZAP finds alerts
+        with:
+          name: vault-security-audit-report
+          path: |
+            report_html.html
+            report_md.md
+          retention-days: 5
