@@ -176,6 +176,12 @@ jobs:
           docker run -d -p 8080:8080 --name vault-app secure-vault
           sleep 5 # Give the app a few seconds to wake up
 
+  # NEW: Fix permissions for the ZAP container
+      - name: Prepare ZAP workspace
+        run: |
+          touch zap.yaml
+          chmod -R 777 . # Grant full access to the workspace for the ZAP user
+
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
