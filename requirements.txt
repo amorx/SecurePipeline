@@ -1,4 +1,4 @@
--i https://pkgs.safetycli.com/repository/morkos-it/project/securepipeline/pypi/simple/
+--extra-index-url https://pkgs.safetycli.com/repository/morkos-it/project/securepipeline/pypi/simple/
 ruff
 bandit>=1.9.4
 pytest>=9.0.3
@@ -6,3 +6,4 @@ pytest-cov>=7.1.0
 pip-licenses
 pydantic>=2.7.0
 email-validator>=2.1.0
+fastapi>=0.115.0

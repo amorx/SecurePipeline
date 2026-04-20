@@ -1,7 +1,21 @@
 import os
+from typing import Any
 
 from src.schemas import VaultAccessRequest
 from pydantic import ValidationError
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.middleware("http")
+async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: no cover
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    # Hide the fact that we are using Python/Uvicorn
+    response.headers["Server"] = "Hidden"
+    return response
 
 class SecureVault:
     def __init__(self, vault_dir: str):
