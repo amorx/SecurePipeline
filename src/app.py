@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -27,8 +28,9 @@ def _agent_log(hypothesis_id: str, location: str, message: str, data: dict[str, 
     try:
         with DEBUG_LOG_PATH.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
+    except OSError as err:
+        # Avoid silent exception swallowing (Bandit B110) while keeping debug flow non-fatal.
+        print(f"[agent-log] write failed: {err}", file=sys.stderr)
     # endregion
 
 # 1. Force headers onto EVERY response, including internal errors
