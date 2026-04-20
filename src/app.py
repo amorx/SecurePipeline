@@ -21,15 +21,14 @@ async def custom_404_handler(request: Request, __):
     return JSONResponse(status_code=404, content={"detail": "Not Found"}, headers=headers)
 
 # 2. Explicitly define these so they return 200 OK with correct headers
+# Explicitly handle spider targets to prevent 'Non-Storable' 404s
 @app.get("/robots.txt", include_in_schema=False)
-async def robots():
-    content = "User-agent: *\nDisallow: /"
-    return Response(content=content, media_type="text/plain")
+def robots():
+    return Response(content="User-agent: *\nDisallow: /", media_type="text/plain")
 
 @app.get("/sitemap.xml", include_in_schema=False)
-async def sitemap():
-    content = '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>'
-    return Response(content=content, media_type="application/xml")
+def sitemap():
+    return Response(content='<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>', media_type="application/xml")
 
 @app.middleware("http")
 async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: no cover
