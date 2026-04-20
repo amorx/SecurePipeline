@@ -193,6 +193,7 @@ jobs:
       - name: Prepare ZAP workspace
         run: |
           touch zap.yaml
+          touch report_json.json report_md.md report_html.html
           chmod -R 777 . # Grant full access to the workspace for the ZAP user
 
       - name: OWASP ZAP Baseline Scan

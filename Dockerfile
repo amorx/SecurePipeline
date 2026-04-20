@@ -23,6 +23,10 @@ COPY --from=builder --chown=vaultuser:vaultgroup /build/requirements.txt .
 # Copy your source code
 COPY --chown=vaultuser:vaultgroup src/ ./src/
 
+# Update PATH so the system finds uvicorn in the user's local folder
+ENV PATH="/home/vaultuser/.local/bin:${PATH}"
+ENV PYTHONPATH="/home/vaultuser/app"
+
 # Update PATH to find the installed packages
 ENV PATH=/home/vaultuser/.local/bin:$PATH
 USER vaultuser
