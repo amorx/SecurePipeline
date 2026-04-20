@@ -13,10 +13,18 @@ async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: 
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
-    # Tell browsers NOT to store this data in their local cache
-    response.headers["Cache-Control"] = "no-store, max-age=0"
     # Hide the fact that we are using Python/Uvicorn
     response.headers["Server"] = "Hidden"
+    # NEW: Fix for WARN-NEW: Non-Storable Content [10049]
+    # Tells browsers and proxies "Do not store this in cache ever"
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    # NEW: Fix for WARN-NEW: Cross-Origin-Resource-Policy [90004]
+    # Prevents other domains from reading the response (Anti-Spectre/Meltdown defense)
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+
     return response
 
 @app.get("/")
