@@ -4,6 +4,7 @@ from unittest.mock import patch, mock_open
 from src.app import SecureVault, process_vault_entry
 from src.schemas import VaultAccessRequest
 from pydantic import ValidationError
+from fastapi.testclient import TestClient
 
 # TEST 1: The Happy Path (Covers encryption and file writing)
 @patch.dict(os.environ, {"ENCRYPTION_KEY": "super_secret_key"})
@@ -96,3 +97,34 @@ async def test_read_root_status_payload():
 
     payload = await read_root()
     assert payload == {"status": "Secure Vault Online", "version": "1.0.0"}
+
+
+def test_not_found_handler_includes_security_headers():
+    """Ensure custom 404 handler responds with hardened headers."""
+    from src.app import app
+
+    client = TestClient(app)
+    response = client.get("/does-not-exist")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not Found"}
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Cross-Origin-Resource-Policy"] == "same-origin"
+
+
+def test_robots_and_sitemap_endpoints():
+    """Ensure scanner-noise endpoints exist and return expected content types."""
+    from src.app import app
+
+    client = TestClient(app)
+
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200
+    assert "User-agent" in robots.text
+    assert robots.headers["content-type"].startswith("text/plain")
+
+    sitemap = client.get("/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert sitemap.text.startswith("<?xml")
+    assert sitemap.headers["content-type"].startswith("application/xml")

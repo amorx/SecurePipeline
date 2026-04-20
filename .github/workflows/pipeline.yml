@@ -202,6 +202,9 @@ jobs:
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'http://localhost:8080'
+          # CRITICAL: Set this to false to stop the action from
+          # trying to upload the "zap_scan" artifact itself.
+          artifact_name: ''
           # This generates a report and creates a GitHub Issue if it finds flaws
           fail_action: true
 

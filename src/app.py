@@ -3,9 +3,33 @@ from typing import Any
 
 from src.schemas import VaultAccessRequest
 from pydantic import ValidationError
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, Request
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
+
+# 1. Force headers onto EVERY response, including internal errors
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, __):
+    headers = {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Cross-Origin-Resource-Policy": "same-origin"
+    }
+    return JSONResponse(status_code=404, content={"detail": "Not Found"}, headers=headers)
+
+# 2. Explicitly define these so they return 200 OK with correct headers
+@app.get("/robots.txt", include_in_schema=False)
+async def robots():
+    content = "User-agent: *\nDisallow: /"
+    return Response(content=content, media_type="text/plain")
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap():
+    content = '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>'
+    return Response(content=content, media_type="application/xml")
 
 @app.middleware("http")
 async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: no cover
