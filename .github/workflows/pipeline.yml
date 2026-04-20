@@ -179,7 +179,15 @@ jobs:
           docker run -d --network host --name vault-app secure-vault
 
           # Health check: Wait until the app actually responds
-          timeout 30s sh -c 'until curl -s http://localhost:8080; do sleep 1; done'
+          ##timeout 30s sh -c 'until curl -s http://localhost:8080; do sleep 1; done'
+
+          echo "Waiting for app to wake up..."
+          # If this fails, we print the logs so we can see the Python error
+          if ! timeout 40s sh -c 'until curl -s http://localhost:8080 > /dev/null; do echo "Still waiting..."; sleep 2; done'; then
+            echo "❌ App failed to start in time. Printing logs:"
+            docker logs vault-app
+            exit 1
+          fi
 
   # NEW: Fix permissions for the ZAP container
       - name: Prepare ZAP workspace

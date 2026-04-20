@@ -1,6 +1,7 @@
 # STAGE 1: Builder
 FROM python:3.11-slim-bookworm AS builder
-
+ENV PIP_ROOT_USER_ACTION=ignore
+# ... rest of builder ...
 WORKDIR /build
 COPY requirements.txt .
 # Install dependencies to a local folder
@@ -27,4 +28,8 @@ ENV PATH=/home/vaultuser/.local/bin:$PATH
 USER vaultuser
 
 # Execute as a module
-CMD ["python", "-m", "src.app"]
+##CMD ["python", "-m", "src.app"]
+
+# WRONG: CMD ["python", "src/app.py"] (if app.py binds to 127.0.0.1)
+# RIGHT:
+    CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8080"]
