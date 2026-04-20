@@ -173,8 +173,13 @@ jobs:
       - name: Build and Start Vault
         run: |
           docker build -t secure-vault .
-          docker run -d -p 8080:8080 --name vault-app secure-vault
-          sleep 5 # Give the app a few seconds to wake up
+          ##docker run -d -p 8080:8080 --name vault-app secure-vault
+          ##sleep 5 # Give the app a few seconds to wake up
+          # Run with --network host so it actually sits on localhost:8080
+          docker run -d --network host --name vault-app secure-vault
+
+          # Health check: Wait until the app actually responds
+          timeout 30s sh -c 'until curl -s http://localhost:8080; do sleep 1; done'
 
   # NEW: Fix permissions for the ZAP container
       - name: Prepare ZAP workspace
