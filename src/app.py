@@ -24,6 +24,8 @@ async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: 
     # NEW: Fix for WARN-NEW: Cross-Origin-Resource-Policy [90004]
     # Prevents other domains from reading the response (Anti-Spectre/Meltdown defense)
     response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
 
     return response
 
