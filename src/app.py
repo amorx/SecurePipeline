@@ -1,5 +1,8 @@
 import os
 
+from src.schemas import VaultAccessRequest
+from pydantic import ValidationError
+
 class SecureVault:
     def __init__(self, vault_dir: str):
         self.vault_dir = vault_dir
@@ -25,3 +28,20 @@ class SecureVault:
         with open(path, "w") as f:
             f.write(encrypted_content)
         return path
+
+def process_vault_entry(data: dict):
+    try:
+        # This line validates EVERYTHING instantly
+        request = VaultAccessRequest(**data)
+        print(f"Access granted for: {request.username}")
+        return True
+    except ValidationError as e:
+        # Bandit and Ruff will like that we are handling the specific error
+        print(f"SECURITY ALERT: Invalid Input Attempted: {e.json()}")
+        return False
+
+# Example usage for local manual testing only.
+if __name__ == "__main__":  # pragma: no cover
+    # This will FAIL (username too long, bad characters)
+    malicious_payload = {"username": "admin_user_###_attack", "email": "not-an-email", "access_level": 99}
+    process_vault_entry(malicious_payload)

@@ -4,6 +4,9 @@ on:
   push:  # Run on every push to any branch
   pull_request:  # Run on new pull requests
 
+permissions:
+  contents: read
+
 jobs:
   security:
     runs-on: ubuntu-latest
