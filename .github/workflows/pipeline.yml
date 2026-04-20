@@ -61,7 +61,7 @@ jobs:
         run: |
           pip-licenses --summary
           #pip-licenses --allow-only "MIT" "MIT License" "Apache Software License" "Apache-2.0" "BSD-2-Clause" "Apache-2.0 OR BSD-2-Clause" "Python" --partial-match
-          pip-licenses --allow-only "MIT;Apache;BSD;Python;ISC;PSF;Unlicense" --partial-match
+          pip-licenses --allow-only "MIT;Apache;BSD;Python;ISC;PSF;Unlicense;MPL 2.0;Mozilla Public License 2.0 (MPL 2.0)" --partial-match
 
       - name: Generate SBOM
         run: |
