@@ -28,9 +28,11 @@ jobs:
         run: bandit -r src/ -v
 
       - name: Check for vulnerable dependencies
+        env:
+          SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
         run: |
           pip install safety
-          safety scan
+          safety --key "$SAFETY_API_KEY" scan
 
   # GATE 2: LEGAL CHECKS
   legal-licenses-checks:
