@@ -1,4 +1,7 @@
+import json
 import os
+import time
+from pathlib import Path
 from typing import Any
 
 from src.schemas import VaultAccessRequest
@@ -7,6 +10,26 @@ from fastapi import FastAPI, Response, Request
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
+DEBUG_LOG_PATH = Path("/Users/alex/SecurePipeline/.cursor/debug-c57134.log")
+
+
+def _agent_log(hypothesis_id: str, location: str, message: str, data: dict[str, Any], run_id: str = "pre-fix") -> None:  # pragma: no cover
+    # region agent log
+    entry = {
+        "sessionId": "c57134",
+        "runId": run_id,
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data,
+        "timestamp": int(time.time() * 1000),
+    }
+    try:
+        with DEBUG_LOG_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception:
+        pass
+    # endregion
 
 # 1. Force headers onto EVERY response, including internal errors
 @app.exception_handler(404)
@@ -18,16 +41,40 @@ async def custom_404_handler(request: Request, __):
         "Pragma": "no-cache",
         "Cross-Origin-Resource-Policy": "same-origin"
     }
+    # region agent log
+    _agent_log(
+        "H4",
+        "src/app.py:custom_404_handler",
+        "custom 404 headers emitted",
+        {"path": request.url.path, "headers": headers},
+    )
+    # endregion
     return JSONResponse(status_code=404, content={"detail": "Not Found"}, headers=headers)
 
 # 2. Explicitly define these so they return 200 OK with correct headers
 # Explicitly handle spider targets to prevent 'Non-Storable' 404s
 @app.get("/robots.txt", include_in_schema=False)
 def robots():
+    # region agent log
+    _agent_log(
+        "H2",
+        "src/app.py:robots",
+        "robots endpoint response generated",
+        {"path": "/robots.txt"},
+    )
+    # endregion
     return Response(content="User-agent: *\nDisallow: /", media_type="text/plain")
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
+    # region agent log
+    _agent_log(
+        "H2",
+        "src/app.py:sitemap",
+        "sitemap endpoint response generated",
+        {"path": "/sitemap.xml"},
+    )
+    # endregion
     return Response(content='<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>', media_type="application/xml")
 
 @app.middleware("http")
@@ -50,10 +97,32 @@ async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: 
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
 
+    # region agent log
+    _agent_log(
+        "H1",
+        "src/app.py:add_security_headers",
+        "middleware final response cache headers",
+        {
+            "path": getattr(getattr(request, "url", None), "path", ""),
+            "cache_control": response.headers.get("Cache-Control"),
+            "pragma": response.headers.get("Pragma"),
+            "expires": response.headers.get("Expires"),
+            "corp": response.headers.get("Cross-Origin-Resource-Policy"),
+        },
+    )
+    # endregion
     return response
 
 @app.get("/")
 async def read_root():
+    # region agent log
+    _agent_log(
+        "H3",
+        "src/app.py:read_root",
+        "root endpoint response generated",
+        {"path": "/"},
+    )
+    # endregion
     return {"status": "Secure Vault Online", "version": "1.0.0"}
 
 class SecureVault:
