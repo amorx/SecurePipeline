@@ -56,9 +56,16 @@ resource "aws_default_security_group" "vault_default_sg" {
   vpc_id = aws_vpc.vault_vpc.id
 }
 
+resource "aws_kms_key" "vpc_flow_logs_kms" {
+  description             = "KMS key for VPC flow logs CloudWatch encryption"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+}
+
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/secure-vault/flow-logs"
-  retention_in_days = 30
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.vpc_flow_logs_kms.arn
 }
 
 resource "aws_iam_role" "vpc_flow_logs_role" {
