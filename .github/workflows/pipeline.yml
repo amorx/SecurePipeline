@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: read
+  issues: write  # ZAP needs this to create the report issue
+  pull-requests: write
 
 jobs:
   # GATE 1: STATIC ANALYSIS & SECURITY

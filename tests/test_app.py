@@ -1,5 +1,5 @@
-import pytest
 import os
+import pytest
 from unittest.mock import patch, mock_open
 from src.app import SecureVault, process_vault_entry
 from src.schemas import VaultAccessRequest
@@ -87,3 +87,12 @@ def test_username_validator_rejects_non_alnum_characters():
     """Directly exercise the custom validator rejection branch."""
     with pytest.raises(ValueError, match="Username must be alphanumeric"):
         VaultAccessRequest.username_alphanumeric("bad;name")
+
+
+@pytest.mark.anyio
+async def test_read_root_status_payload():
+    """Ensure FastAPI root handler returns the expected health payload."""
+    from src.app import read_root
+
+    payload = await read_root()
+    assert payload == {"status": "Secure Vault Online", "version": "1.0.0"}

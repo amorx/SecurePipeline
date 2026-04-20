@@ -13,9 +13,15 @@ async def add_security_headers(request: Any, call_next: Any) -> Any:  # pragma: 
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
+    # Tell browsers NOT to store this data in their local cache
+    response.headers["Cache-Control"] = "no-store, max-age=0"
     # Hide the fact that we are using Python/Uvicorn
     response.headers["Server"] = "Hidden"
     return response
+
+@app.get("/")
+async def read_root():
+    return {"status": "Secure Vault Online", "version": "1.0.0"}
 
 class SecureVault:
     def __init__(self, vault_dir: str):
