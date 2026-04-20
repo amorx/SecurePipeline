@@ -106,7 +106,7 @@ jobs:
           path: htmlcov/
 
   # GATE 4: Keys check
-  secret-scan:
+  secrets-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -160,3 +160,25 @@ jobs:
           quiet: true
           soft_fail: false
           download_external_modules: true
+
+  # GATE 8: DAST SCAN
+  dast-scan:
+    name: "Dynamic Security Scan (ZAP)"
+    runs-on: ubuntu-latest
+    needs: [docker-lint] # Only run if the container is built correctly
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build and Start Vault
+        run: |
+          docker build -t secure-vault .
+          docker run -d -p 8080:8080 --name vault-app secure-vault
+          sleep 5 # Give the app a few seconds to wake up
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:8080'
+          # This generates a report and creates a GitHub Issue if it finds flaws
+          fail_action: true

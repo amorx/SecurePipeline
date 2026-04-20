@@ -40,6 +40,15 @@ def process_vault_entry(data: dict):
         print(f"SECURITY ALERT: Invalid Input Attempted: {e.json()}")
         return False
 
+# In 2026, we always ensure the 'Server' header is hidden or fake
+# and 'X-Content-Type-Options' is set to 'nosniff'
+headers = {
+    "Content-Security-Policy": "default-src 'self'",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Server": "SecureVault-1.0" # Never reveal 'Python/Gunicorn'
+}
+
 # Example usage for local manual testing only.
 if __name__ == "__main__":  # pragma: no cover
     # This will FAIL (username too long, bad characters)
