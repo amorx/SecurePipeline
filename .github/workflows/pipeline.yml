@@ -136,3 +136,22 @@ jobs:
           directory: ./infra # Points to your infrastructure folder
           framework: terraform
           soft_fail: false # Block the PR if infra is insecure
+
+  # GATE 7: INFRASTRUCTURE SECURITY SCAN
+  infra-security-scan:
+    needs: infra-scan  # 🛑 Don't run tests if infra checks fail
+    name: "Infrastructure Security Audit"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./infra
+          framework: terraform
+          # This ensures the pipeline blocks if you have high-risk infra flaws
+          quiet: true
+          soft_fail: false
+          download_external_modules: true
