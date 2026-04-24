@@ -7,7 +7,7 @@ Minimal FastAPI starter template with security-minded defaults, test coverage, a
 - FastAPI app with common security headers and scanner-noise endpoints.
 - Input validation with Pydantic models.
 - A starter vault service that encrypts data using `cryptography` (Fernet).
-- CI baseline for linting, static security checks, tests, and Docker build smoke tests.
+- CI pipeline for linting, static security checks, tests, secrets scanning, infra checks, and DAST.
 
 ## Quick Start
 
@@ -56,7 +56,7 @@ docker run --rm -p 8080:8080 -e ENCRYPTION_KEY="$ENCRYPTION_KEY" secure-pipeline
 
 - `ruff check .` - lint and style checks
 - `bandit -r src/ -ll` - static security scan
-- `pytest --cov=src --cov-report=term-missing --cov-fail-under=85` - tests with coverage gate
+- `pytest --cov=src --cov-report=term-missing --cov-fail-under=100` - tests with coverage gate
 - `docker build -t secure-pipeline-template .` - image build smoke check
 
 ## Customize For A New App
@@ -64,7 +64,7 @@ docker run --rm -p 8080:8080 -e ENCRYPTION_KEY="$ENCRYPTION_KEY" secure-pipeline
 1. Rename the project and update endpoint payload/version values in `src/app.py`.
 2. Replace the starter vault service in `src/services/vault.py` with your domain logic.
 3. Move app settings to environment-based configuration as new features are added.
-4. Tighten CI thresholds (coverage, additional scanners) once feature scope stabilizes.
+4. Adjust CI thresholds and enabled scanners as your app requirements evolve.
 5. Add integration tests in `tests/` for app-specific workflows.
 
 ## Notes
