@@ -1,44 +1,46 @@
 import os
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, mock_open
-from src.app import SecureVault, process_vault_entry
-from src.schemas import VaultAccessRequest
-from pydantic import ValidationError
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
+from src.app import app, process_vault_entry
+from src.schemas import VaultAccessRequest
+from src.services.crypto import CryptoService
+from src.services.vault import SecureVault
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"
+
 
 # TEST 1: The Happy Path (Covers encryption and file writing)
-@patch.dict(os.environ, {"ENCRYPTION_KEY": "super_secret_key"})
-def test_vault_stores_encrypted_file():
-    # We use a dummy directory name
-    vault = SecureVault(vault_dir="test_vault")
-
-    # Mock the 'open' function so no real file is created
-    m = mock_open()
-    with patch("builtins.open", m):
-        # We also mock os.makedirs to avoid creating real folders
-        with patch("os.makedirs"):
-            vault.store_message("secret.txt", "Hello World")
-
-    # Assertions to ensure the logic flowed correctly
-    m.assert_called_once_with(os.path.join("test_vault", "secret.txt"), "w")
-    handle = m()
-    written_data = handle.write.call_args[0][0]
-    assert written_data != "Hello World"  # Ensure it is encrypted
+def test_vault_stores_encrypted_file(tmp_path: Path) -> None:
+    key = Fernet.generate_key().decode("utf-8")
+    vault = SecureVault(vault_dir=str(tmp_path), crypto=CryptoService(key=key))
+    destination = vault.store_message("secret.txt", "Hello World")
+    encrypted = destination.read_text(encoding="utf-8")
+    assert destination.name == "secret.txt"
+    assert encrypted != "Hello World"
 
 # TEST 2: The Error Path (This gets you from 94% to 100% coverage)
 @patch.dict(os.environ, {"ENCRYPTION_KEY": "short"})
-def test_vault_raises_error_on_weak_key():
-    with pytest.raises(ValueError, match="Invalid or missing ENCRYPTION_KEY"):
+def test_vault_raises_error_on_weak_key() -> None:
+    with pytest.raises(ValueError, match="valid Fernet key"):
         SecureVault(vault_dir="any_dir")
 
 # TEST 3: Missing Key Path (Ensures security if env var is totally gone)
 @patch.dict(os.environ, {}, clear=True)
-def test_vault_raises_error_on_missing_key():
-    with pytest.raises(ValueError, match="Invalid or missing ENCRYPTION_KEY"):
+def test_vault_raises_error_on_missing_key() -> None:
+    with pytest.raises(ValueError, match="Missing ENCRYPTION_KEY"):
         SecureVault(vault_dir="any_dir")
 
 # TEST 4: Data Validation (Pydantic integration)
-def test_process_vault_entry_success():
+def test_process_vault_entry_success() -> None:
     """Test that valid data passes the bouncer."""
     valid_data = {
         "username": "alex_2026",
@@ -47,7 +49,7 @@ def test_process_vault_entry_success():
     }
     assert process_vault_entry(valid_data) is True
 
-def test_process_vault_entry_invalid_username():
+def test_process_vault_entry_invalid_username() -> None:
     """Test security rejection for malicious characters in username."""
     # Attempting a basic SQL injection/XSS style character input
     invalid_data = {
@@ -57,7 +59,7 @@ def test_process_vault_entry_invalid_username():
     }
     assert process_vault_entry(invalid_data) is False
 
-def test_process_vault_entry_invalid_email():
+def test_process_vault_entry_invalid_email() -> None:
     """Test that the email-validator integration works."""
     invalid_data = {
         "username": "alex",
@@ -66,7 +68,7 @@ def test_process_vault_entry_invalid_email():
     }
     assert process_vault_entry(invalid_data) is False
 
-def test_process_vault_entry_out_of_range_level():
+def test_process_vault_entry_out_of_range_level() -> None:
     """Test that numerical constraints (ge=1, le=5) are enforced."""
     invalid_data = {
         "username": "alex",
@@ -75,7 +77,7 @@ def test_process_vault_entry_out_of_range_level():
     }
     assert process_vault_entry(invalid_data) is False
 
-def test_schema_direct_validation():
+def test_schema_direct_validation() -> None:
     """Verify the Pydantic schema raises ValidationError directly."""
     with pytest.raises(ValidationError):
         VaultAccessRequest(
@@ -84,14 +86,14 @@ def test_schema_direct_validation():
             access_level=1
         )
 
-def test_username_validator_rejects_non_alnum_characters():
+def test_username_validator_rejects_non_alnum_characters() -> None:
     """Directly exercise the custom validator rejection branch."""
     with pytest.raises(ValueError, match="Username must be alphanumeric"):
         VaultAccessRequest.username_alphanumeric("bad;name")
 
 
 @pytest.mark.anyio
-async def test_read_root_status_payload():
+async def test_read_root_status_payload() -> None:
     """Ensure FastAPI root handler returns the expected health payload."""
     from src.app import read_root
 
@@ -99,10 +101,8 @@ async def test_read_root_status_payload():
     assert payload == {"status": "Secure Vault Online", "version": "1.0.0"}
 
 
-def test_not_found_handler_includes_security_headers():
+def test_not_found_handler_includes_security_headers() -> None:
     """Ensure custom 404 handler responds with hardened headers."""
-    from src.app import app
-
     client = TestClient(app)
     response = client.get("/does-not-exist")
 
@@ -113,10 +113,8 @@ def test_not_found_handler_includes_security_headers():
     assert response.headers["Cross-Origin-Resource-Policy"] == "same-origin"
 
 
-def test_robots_and_sitemap_endpoints():
+def test_robots_and_sitemap_endpoints() -> None:
     """Ensure scanner-noise endpoints exist and return expected content types."""
-    from src.app import app
-
     client = TestClient(app)
 
     robots = client.get("/robots.txt")

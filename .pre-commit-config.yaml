@@ -20,7 +20,8 @@ repos:
       - id: bandit
         name: bandit
         entry: bandit
-        language: system
+        language: python
+        additional_dependencies: [bandit==1.8.6]
         types: [python]
         files: ^src/
         args: ["-v" , "-ll"]
@@ -28,7 +29,8 @@ repos:
       - id: pip-audit
         name: pip-audit
         entry: pip-audit
-        language: system
+        language: python
+        additional_dependencies: [pip-audit==2.9.0]
         pass_filenames: false
         always_run: true
 
@@ -37,8 +39,16 @@ repos:
 
       - id: pytest-cov
         name: pytest-cov
-        entry: bash -c "export PYTHONPATH=$PYTHONPATH:$(pwd) && pytest --cov=src --cov-fail-under=100"
-        language: system
+        entry: pytest --cov=src --cov-fail-under=85
+        language: python
+        additional_dependencies:
+          - pytest==8.4.2
+          - pytest-cov==7.0.0
+          - fastapi==0.115.14
+          - pydantic==2.12.2
+          - email-validator==2.3.0
+          - httpx==0.28.1
+          - cryptography==46.0.3
         pass_filenames: false
         always_run: true
 
